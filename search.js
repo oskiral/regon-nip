@@ -30,50 +30,51 @@ const api_key = process.env.api_key // place your api key here (example : abcdef
 // }
 // all values are string type
 
-async function getCompanyDataByApi(nip) {
+function getCompanyDataByApi(nip) {
 
-    // create a connection
-    conn = Client.createClient({
-        key: api_key,
-        sandbox: false,
-        birVersion: '1.1'
-    });
-
-    conn.then((data) => {
-
-
-        const gus = data.service;
-
-        gus.findByNip(nip).then(function(findCompanyByNip) {
-
-            // cleaning up the response becuase it returns object where values are type array so we can't access it directly
-            const cleaned = {};
-
-            for (const key in findCompanyByNip) {
-                if (findCompanyByNip.hasOwnProperty(key)) {
-                    const value = findCompanyByNip[key];
-
-                    if (Array.isArray(value)) {
-                        cleaned[key] = value[0];
-                    } else {
-                        cleaned[key] = value;
+    return new Promise((resolve, reject) => {
+        
+        // create a connection
+        conn = Client.createClient({
+            key: api_key,
+            sandbox: false,
+            birVersion: '1.1'
+        });
+    
+        conn.then((data) => {
+    
+    
+            // target the data we need
+            const gus = data.service;
+    
+            gus.findByNip(nip).then(function(findCompanyByNip) {
+    
+                // cleaning up the response becuase it returns object where values are type array so we can't access it directly
+                const cleaned = {};
+    
+                for (const key in findCompanyByNip) {
+                    if (findCompanyByNip.hasOwnProperty(key)) {
+                        const value = findCompanyByNip[key];
+    
+                        if (Array.isArray(value)) {
+                            cleaned[key] = value[0];
+                        } else {
+                            cleaned[key] = value;
+                        }
                     }
                 }
-            }
-            console.log(cleaned);
-            return cleaned;
+                resolve(cleaned);
+            })
+    
+        }).catch(err => {
+            console.log(err);
         })
 
-    }).catch(err => {
-        console.log(err);
+
     })
+
 
 }
 
 // printing out the returned object
-
-async function main() {
-    const result = await getCompanyDataByApi(5552112610)
-    console.log(result);
-}
-main();
+getCompanyDataByApi(5552112610).then(result => console.log(result));
